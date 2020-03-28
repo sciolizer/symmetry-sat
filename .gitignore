@@ -1,3 +1,15 @@
 .stack-work/
 structured-sat.cabal
 *~
+
+# User-specific stuff
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/libraries/*
+structured-sat-test.prof
+
+/out
+example.cnf
+rando-exe.prof

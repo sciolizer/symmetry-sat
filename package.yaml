@@ -21,6 +21,16 @@ description:         Please see the README on GitHub at <https://github.com/scio
 
 dependencies:
 - base >= 4.7 && < 5
+- containers
+- heap
+- lens
+- mtl
+- multimap
+- multiset
+- timeit
+- MonadRandom
+- profunctors
+- random
 
 library:
   source-dirs: src
@@ -29,6 +39,24 @@ executables:
   structured-sat-exe:
     main:                Main.hs
     source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - structured-sat
+  circuit-exe:
+    main:                Main.hs
+    source-dirs:         circuit
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - structured-sat
+  rando-exe:
+    main:                Main.hs
+    source-dirs:         rando
     ghc-options:
     - -threaded
     - -rtsopts
@@ -46,3 +74,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - structured-sat
+    - QuickCheck

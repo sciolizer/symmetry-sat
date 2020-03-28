@@ -1,0 +1,147 @@
+module Reduce (
+
+) where
+
+import Clause
+import Literal
+import Var
+
+type Reduction a b = [a] -> [b]
+
+type DiamondGadget = (Var, Var)
+type ClauseGadget = (Literal, Literal, Literal)
+type SlotGadget = Int -- slot in path
+
+data GadgetConstraint = Diamond DiamondGadget | ClauseGadget ClauseGadget
+
+cnfToGadgets :: Reduction Clause GadgetConstraint
+cnfToGadgets = undefined
+
+data GraphConstraint
+  = OneIn Node
+  | OneOut Node
+  | FirstNodeFirstSlot Var -- optional, but helps by breaking symmetry
+  | NextNodeNextSlot Node Node SlotGadget
+  | ExactlyOneNodePerSlot SlotGadget
+
+data Node = DiamondNode DiamondNode DiamondGadget | ClauseNode ClauseNode ClauseGadget
+
+data DiamondNode
+  = ClauseConnectorLeft ClauseGadget
+  | ClauseConnectorRight ClauseGadget
+  | ClauseConnectorPreLeft ClauseGadget
+  | VarEntrance
+  | VarLeft
+  | VarRight
+  | VarPreRight
+  | VarExit
+
+data ClauseNode
+  = Hub
+  | FirstEntrance
+  | FirstExit
+  | SecondEntrance
+  | SecondExit
+  | ThirdEntrance
+  | ThirdExit
+
+gadgetsToGraph :: Reduction GadgetConstraint GraphConstraint
+gadgetsToGraph = undefined
+
+data PsuedoBoolean
+  = ExactlyOneOfTwo TwoPassages DiamondGadget
+  | ExactlyOneOfThree ThreePassages DiamondGadget
+
+data TwoPassages
+  = DiamondLeftIn
+  | DiamondLeftOut
+  | DiamondRightIn
+  | DiamondRightOut
+  | DiamondPreRightIn
+  | DiamondPreRightOut
+  | DiamondEntranceIn
+  | DiamondEntranceOut
+  | DiamondExitIn
+  | DiamondExitOut
+  | ClauseConnectorPreLeftIn ClauseGadget -- for clauses which are irrelevant to this variable
+  | ClauseConnectorPreLeftOut ClauseGadget -- ditto
+
+data ThreePassages
+  =
+
+
+-- one in and one out can obviously be psuedo boolean
+-- FirstNodeFirstSlot says var "VarEntrance {first} `at` Slot 1" is true
+-- NextNodeNextSlot says an edge between Node1 and Node2 & Node1@k => Node2@k+1
+-- ExactlyOneNodePerSlot is also obviously psuedo boolean
+
+start :: [Clause] -> [TopConstraint]
+start = undefined
+
+
+
+type DiamondMappings = [DiamondMapping]
+
+-- we actually start with only two constraints: IsDimaond and IsConstraint
+-- at this stage our only work is building up correct variable mappings
+-- having built that, we can
+
+constraintGadget :: IO ()
+constraintGadget = do
+  edge ClauseNode
+
+buildDiamond :: IO ()
+buildDiamond = do
+  edge VarEntrance VarLeft
+  edge Var
+  add (ExactlyOneInto VarEntrance)
+  add ()
+{-
+variables:
+  - one per edge, true means edge is part of hamiltonian path
+  - one per node, true means node is connected to the terminal node (to prevent solutions involving multiple loops)
+constraints:
+exactly one edge into every node
+exactly one edge out of every node
+the terminal node is connected to the terminal node
+if a node is connected to the terminal node, then its children are connected to the terminal node
+
+variable mappings:
+  every diamond
+  every clause node and its three clause connectors (assuming 3cnf)
+    - note that this means some clauses will be represented twice, e.g. one edge into every node applices to every connector both because of the diamond and because of the clause
+-}
+
+data VarGroup = DiamondFor Var | ClauseFor Clause
+
+data OutputVar = EdgeInPath (Node, Node) | NodeInPath Node
+
+data OutputConstraint = ExactlyOneInto Node | ExactlyOneOutOf Node | TerminalNodeConnectsToItself | NodeConnectedToTerminal Node
+
+data Logic = Logic
+
+reduceToHamilton :: [Clause] -> [OutputConstraint]
+reduceToHamilton = undefined
+
+propositionalize :: [OutputConstraint] -> [Logic]
+propositionalize = undefined
+
+tseytin :: [Logic] -> [Clause]
+tseytin = undefined
+
+-- converts a CNF to a Hamilton graph
+-- why Hamilton? because the widget sizes are linear in the number of variables (most widgets in other proofs of reduction are constant)
+-- yes it is true that most of the nodes in the variable gadget are simple propagations, but the gadget is STILL
+-- going to grow arbitrarily large, and so should eventually outpace minisat
+
+-- I suppose I *could* go all the way and do the cook-levin reduction...
+
+-- random idea: keeping indices on all of the learned clauses is of course expensive, even with
+-- the restriction to two literals... what if we let our index go "stale" occasionally, and rebuild
+-- it when our unit propagation runs out of steam? if we keep all learned clauses around forever, then
+-- the performance is identical: each clause will be indexed exactly once. However, if we accumulate
+-- learned clauses without indexing them, then we indexing time comes around, the size of our learned
+-- clause cache might be too large to be worth processing... we could just skip most of them without
+-- ever indexing them. additionally, if we continue unit propagation as individual clauses are indexed,
+-- we might end up growing the "to-be-indexed" queue faster than it can be processed. if this trend
+-- continues to the end of solving, then we can avoid a large amount of work
